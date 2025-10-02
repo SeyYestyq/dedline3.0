@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Мои дедлайны</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(25, 118, 210, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(66, 165, 246, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(100, 181, 246, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(25, 118, 210, 0.1) 0%, transparent 60%),
+                radial-gradient(circle at 70% 30%, rgba(66, 165, 246, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .app {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 0;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            min-height: 100vh;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section {
+            margin: 25px 15px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 5px;
+        }
+
+        .section-header h2 {
+            font-size: 22px;
+            color: #ffffff;
+            font-weight: 400;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .badge {
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.8), rgba(66, 165, 246, 0.8));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 4px 15px rgba(25, 118, 210, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .task-card {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(26, 26, 46, 0.3) 100%);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            color: #ffffff;
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .task-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #1976d2, #42a5f5, #64b5f6);
+        }
+
+        .task-card:active {
+            transform: scale(0.98);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+
+        .task-header h4 {
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: 500;
+            line-height: 1.4;
+            flex: 1;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .points {
+            background: linear-gradient(135deg, rgba(25, 118, 210, 0.8), rgba(66, 165, 246, 0.8));
+            backdrop-filter: blur(20px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            margin-left: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 4px 15px rgba(25, 118, 210, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-name {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-description {
+            font-size: 14px;
+            color: #b0bec5;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 15px;
+            position: relative;
+        }
+
+        .date {
+            font-size: 14px;
+            color: #b0bec5;
+            margin-bottom: 6px;
+        }
+
+        .days-left {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(26, 26, 46, 0.6));
+            backdrop-filter: blur(30px);
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            z-index: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #90a4ae;
+            font-style: italic;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(30px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .urgent-section .task-card {
+            border-left: 4px solid #f44336;
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%);
+        }
+
+        .urgent-section .task-card::before {
+            background: linear-gradient(90deg, #f44336, #ff5722);
+        }
+
+        .current-section .task-card {
+            border-left: 4px solid #ff9800;
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%);
+        }
+
+        .current-section .task-card::before {
+            background: linear-gradient(90deg, #ff9800, #ffc107);
+        }
+
+        .upcoming-section .task-card {
+            border-left: 4px solid #4caf50;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(0, 0, 0, 0.3) 100%);
+        }
+
+        .upcoming-section .task-card::before {
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app {
+                max-width: 100%;
+                border-left: none;
+                border-right: none;
+            }
+            
+            .section {
+                margin: 20px 10px;
+            }
+            
+            .section-header h2 {
+                font-size: 20px;
+            }
+            
+            .badge {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            
+            .task-card {
+                padding: 20px;
+                border-radius: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .section {
+                margin: 16px 8px;
+            }
+            
+            .section-header h2 {
+                font-size: 18px;
+            }
+            
+            .badge {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+            
+            .task-card {
+                padding: 18px;
+                border-radius: 18px;
+            }
+            
+            .task-name {
+                font-size: 15px;
+            }
+            
+            .task-description {
+                font-size: 12px;
+            }
+            
+            .date {
+                font-size: 11px;
+            }
+            
+            .days-left {
+                font-size: 10px;
+                padding: 6px 10px;
+                border-radius: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <section class="section urgent-section">
+            <div class="section-header">
+                <h2>🔥 Надо делать</h2>
+                <span class="badge" id="urgentBadge">0</span>
+            </div>
+            <div class="tasks-list" id="urgentTasks">
+                <p class="empty-state">🎉 Срочных задач нет!</p>
+            </div>
+        </section>
+
+        <section class="section current-section">
+            <div class="section-header">
+                <h2>⏰ Текущая неделя</h2>
+                <span class="badge" id="currentBadge">0</span>
+            </div>
+            <div class="tasks-list" id="currentTasks">
+                <p class="empty-state">Текущих задач нет</p>
+            </div>
+        </section>
+
+        <section class="section upcoming-section">
+            <div class="section-header">
+                <h2>📅 Chill</h2>
+                <span class="badge" id="upcomingBadge">0</span>
+            </div>
+            <div class="tasks-list" id="upcomingTasks">
+                <p class="empty-state">Будущих задач нет</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Все задачи из расписания
+        const tasks = [
+            // Базы данных для решения промышленных задач
+            {
+                id: 1,
+                subject: "Базы данных",
+                name: "Контрольная работа 1",
+                description: "По заданию практической работы №3",
+                deadline: "2025-10-05",
+                points: 4,
+                reminders: ["2025-09-01", "2025-09-30"]
+            },
+            {
+                id: 2,
+                subject: "Базы данных",
+                name: "Контрольная работа 2",
+                description: "Контрольная работа",
+                deadline: "2025-11-02",
+                points: 5,
+                reminders: ["2025-10-05", "2025-10-28"]
+            },
+            {
+                id: 3,
+                subject: "Базы данных",
+                name: "Контрольная работа 3",
+                description: "Контрольная работа",
+                deadline: "2025-11-16",
+                points: 6,
+                reminders: ["2025-10-19", "2025-11-11"]
+            },
+            {
+                id: 4,
+                subject: "Базы данных",
+                name: "Контрольная работа 4",
+                description: "Контрольная работа",
+                deadline: "2025-11-30",
+                points: 7,
+                reminders: ["2025-11-02", "2025-11-25"]
+            },
+            {
+                id: 5,
+                subject: "Базы данных",
+                name: "Контрольная работа 5",
+                description: "Контрольная работа",
+                deadline: "2025-12-20",
+                points: 8,
+                reminders: ["2025-11-16", "2025-12-15"]
+            },
+            {
+                id: 6,
+                subject: "Базы данных",
+                name: "Тест",
+                description: "25 вопросов на 30 минут. Количество попыток - 2",
+                deadline: "2025-12-20",
+                points: 10,
+                reminders: ["2025-11-16", "2025-12-15"]
+            },
+            
+            // Программирование корпоративных систем
+            {
+                id: 7,
+                subject: "Программирование КС",
+                name: "Контрольная работа 1",
+                description: "Выполнить работу в полном объеме и защитить. Формат рабочей тетради",
+                deadline: "2025-09-30",
+                points: 4,
+                reminders: ["2025-08-19", "2025-09-25"]
+            },
+            {
+                id: 8,
+                subject: "Программирование КС",
+                name: "Контрольная работа 2",
+                description: "Контрольная работа",
+                deadline: "2025-10-31",
+                points: 5,
+                reminders: ["2025-09-19", "2025-10-26"]
+            },
+            {
+                id: 9,
+                subject: "Программирование КС",
+                name: "Контрольная работа 3",
+                description: "Контрольная работа",
+                deadline: "2025-11-30",
+                points: 6,
+                reminders: ["2025-10-19", "2025-11-25"]
+            },
+            {
+                id: 10,
+                subject: "Программирование КС",
+                name: "Контрольная работа 4",
+                description: "Контрольная работа",
+                deadline: "2025-11-30",
+                points: 7,
+                reminders: ["2025-10-19", "2025-11-25"]
+            },
+            {
+                id: 11,
+                subject: "Программирование КС",
+                name: "Контрольная работа 5",
+                description: "Контрольная работа",
+                deadline: "2025-12-20",
+                points: 8,
+                reminders: ["2025-11-16", "2025-12-15"]
+            },
+            {
+                id: 12,
+                subject: "Программирование КС",
+                name: "Тест",
+                description: "20 вопросов на 30 минут. Количество попыток - 3",
+                deadline: "2025-12-20",
+                points: 10,
+                reminders: ["2025-11-16", "2025-12-15"]
+            },
+            
+            // Технологии индустриального программирования
+            {
+                id: 13,
+                subject: "Технологии ИП",
+                name: "Контрольная работа 2",
+                description: "Решить задачи в формате .js файлов",
+                deadline: "2025-10-31",
+                points: 5,
+                reminders: ["2025-10-08", "2025-10-26"]
+            },
+            {
+                id: 14,
+                subject: "Технологии ИП",
+                name: "Контрольная работа 3",
+                description: "Решить задачи в формате .js файлов",
+                deadline: "2025-11-30",
+                points: 6,
+                reminders: ["2025-10-07", "2025-11-25"]
+            },
+            {
+                id: 15,
+                subject: "Технологии ИП",
+                name: "Контрольная работа 4",
+                description: "Решить задачи в формате .js файлов",
+                deadline: "2025-11-30",
+                points: 7,
+                reminders: ["2025-10-17", "2025-11-25"]
+            },
+            {
+                id: 16,
+                subject: "Технологии ИП",
+                name: "Контрольная работа 5",
+                description: "Решить задачи в формате .js файлов",
+                deadline: "2025-12-20",
+                points: 8,
+                reminders: ["2025-11-25", "2025-12-15"]
+            },
+            {
+                id: 17,
+                subject: "Технологии ИП",
+                name: "Тест",
+                description: "Итоговый тест",
+                deadline: "2025-12-31",
+                points: 10,
+                reminders: ["2025-11-30", "2025-12-15"]
+            },
+            
+            // Фронтенд- и бэкенд-разработка
+            {
+                id: 18,
+                subject: "Фронтенд/Бэкенд",
+                name: "Контрольная работа 1",
+                description: "Контрольная работа",
+                deadline: "2025-09-27",
+                points: 4,
+                reminders: ["2025-09-07", "2025-09-22"]
+            },
+            {
+                id: 19,
+                subject: "Фронтенд/Бэкенд",
+                name: "Контрольная работа 2",
+                description: "Контрольная работа",
+                deadline: "2025-10-18",
+                points: 5,
+                reminders: ["2025-09-28", "2025-10-13"]
+            },
+            {
+                id: 20,
+                subject: "Фронтенд/Бэкенд",
+                name: "Контрольная работа 3",
+                description: "Контрольная работа",
+                deadline: "2025-11-01",
+                points: 6,
+                reminders: ["2025-10-12", "2025-10-27"]
+            },
+            {
+                id: 21,
+                subject: "Фронтенд/Бэкенд",
+                name: "Контрольная работа 4",
+                description: "Контрольная работа",
+                deadline: "2025-11-29",
+                points: 7,
+                reminders: ["2025-11-09", "2025-11-24"]
+            },
+            {
+                id: 22,
+                subject: "Фронтенд/Бэкенд",
+                name: "Контрольная работа 5",
+                description: "Контрольная работа",
+                deadline: "2025-12-12",
+                points: 8,
+                reminders: ["2025-11-23", "2025-12-07"]
+            },
+            {
+                id: 23,
+                subject: "Фронтенд/Бэкенд",
+                name: "Тест",
+                description: "20 вопросов на 30 минут. Количество попыток - 1",
+                deadline: "2025-12-20",
+                points: 10,
+                reminders: ["2025-11-30", "2025-12-15"]
+            },
+            
+            // Русский язык и культура речи
+            {
+                id: 24,
+                subject: "Русский язык",
+                name: "Доклад с презентацией",
+                description: "Подготовить доклад с презентацией",
+                deadline: "2025-10-25",
+                points: 10,
+                reminders: ["2025-09-14", "2025-10-20"]
+            },
+            {
+                id: 25,
+                subject: "Русский язык",
+                name: "Коллоквиум",
+                description: "Коллоквиум",
+                deadline: "2025-11-08",
+                points: 15,
+                reminders: ["2025-10-05", "2025-11-03"]
+            },
+            {
+                id: 26,
+                subject: "Русский язык",
+                name: "Опрос",
+                description: "Опрос",
+                deadline: "2025-12-27",
+                points: 10,
+                reminders: ["2025-12-01", "2025-12-22"]
+            },
+            {
+                id: 27,
+                subject: "Русский язык",
+                name: "Тест",
+                description: "Итоговый тест",
+                deadline: "2025-12-28",
+                points: 5,
+                reminders: ["2025-12-01", "2025-12-23"]
+            },
+            
+            // Системы искусственного интеллекта
+            {
+                id: 28,
+                subject: "СИИ и большие данные",
+                name: "Рабочая тетрадь 1",
+                description: "Рабочая тетрадь",
+                deadline: "2025-10-01",
+                points: 0,
+                reminders: ["2025-08-17", "2025-09-26"]
+            },
+            {
+                id: 29,
+                subject: "СИИ и большие данные",
+                name: "Рабочая тетрадь 2",
+                description: "Рабочая тетрадь",
+                deadline: "2025-10-01",
+                points: 0,
+                reminders: ["2025-08-17", "2025-09-26"]
+            },
+            {
+                id: 30,
+                subject: "СИИ и большие данные",
+                name: "Рабочая тетрадь 3",
+                description: "Рабочая тетрадь",
+                deadline: "2025-10-01",
+                points: 0,
+                reminders: ["2025-08-17", "2025-09-26"]
+            },
+            {
+                id: 31,
+                subject: "СИИ и большие данные",
+                name: "Рабочая тетрадь 4",
+                description: "Рабочая тетрадь",
+                deadline: "2025-12-01",
+                points: 0,
+                reminders: ["2025-08-17", "2025-11-26"]
+            },
+            {
+                id: 32,
+                subject: "СИИ и большие данные",
+                name: "Рабочая тетрадь 5",
+                description: "Рабочая тетрадь",
+                deadline: "2025-12-31",
+                points: 0,
+                reminders: ["2025-10-17", "2025-12-26"]
+            },
+            {
+                id: 33,
+                subject: "СИИ и большие данные",
+                name: "Рабочая тетрадь 6",
+                description: "Рабочая тетрадь",
+                deadline: "2025-12-31",
+                points: 0,
+                reminders: ["2025-08-17", "2025-12-26"]
+            },
+            {
+                id: 34,
+                subject: "СИИ и большие данные",
+                name: "Рабочая тетрадь 7",
+                description: "Рабочая тетрадь",
+                deadline: "2025-12-31",
+                points: 0,
+                reminders: ["2025-08-17", "2025-12-26"]
+            },
+            {
+                id: 35,
+                subject: "СИИ и большие данные",
+                name: "Рабочая тетрадь 8",
+                description: "Рабочая тетрадь",
+                deadline: "2025-12-31",
+                points: 0,
+                reminders: ["2025-08-17", "2025-12-26"]
+            },
+            
+            // Математический анализ
+            {
+                id: 36,
+                subject: "Математический анализ",
+                name: "Контрольная работа 1",
+                description: "Контрольная работа",
+                deadline: "2025-10-13",
+                points: 15,
+                reminders: ["2025-09-14", "2025-10-07"]
+            },
+            {
+                id: 37,
+                subject: "Математический анализ",
+                name: "Контрольная работа 2",
+                description: "Контрольная работа",
+                deadline: "2025-12-21",
+                points: 15,
+                reminders: ["2025-11-30", "2025-12-16"]
+            },
+            {
+                id: 38,
+                subject: "Математический анализ",
+                name: "Тест",
+                description: "Итоговый тест",
+                deadline: "2025-12-08",
+                points: 10,
+                reminders: ["2025-11-16", "2025-12-03"]
+            }
+        ];
+
+        function getDaysUntilDeadline(deadline) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const deadlineDate = new Date(deadline);
+            deadlineDate.setHours(0, 0, 0, 0);
+            const diff = deadlineDate - today;
+            return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        }
+
+        function getWeekBounds(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(d.setDate(diff));
+            monday.setHours(0, 0, 0, 0);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23, 59, 59, 999);
+            return { monday, sunday };
+        }
+
+        function isInCurrentWeek(deadline) {
+            const deadlineDate = new Date(deadline);
+            const { monday, sunday } = getWeekBounds(new Date());
+            return deadlineDate >= monday && deadlineDate <= sunday;
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return date.toLocaleDateString('ru-RU', options);
+        }
+
+        function getDaysLeftText(days) {
+            if (days === 0) return "Сегодня!";
+            if (days === 1) return "Завтра";
+            if (days >= 2 && days <= 4) return `${days} дня`;
+            return `${days} дней`;
+        }
+
+        function createTaskCard(task) {
+            const days = getDaysUntilDeadline(task.deadline);
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            
+            card.innerHTML = `
+                <div class="task-header">
+                    <h4>${task.subject}</h4>
+                    <span class="points">${task.points} баллов</span>
+                </div>
+                <div class="task-name">${task.name}</div>
+                <div class="task-description">${task.description}</div>
+                <div class="task-footer">
+                    <div class="deadline-info">
+                        <div class="date">📅 ${formatDate(task.deadline)}</div>
+                    </div>
+                    <span class="days-left">${getDaysLeftText(days)}</span>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function renderTasks() {
+            const urgentContainer = document.getElementById('urgentTasks');
+            const currentContainer = document.getElementById('currentTasks');
+            const upcomingContainer = document.getElementById('upcomingTasks');
+            
+            const urgentBadge = document.getElementById('urgentBadge');
+            const currentBadge = document.getElementById('currentBadge');
+            const upcomingBadge = document.getElementById('upcomingBadge');
+
+            let urgentTasks = [];
+            let currentTasks = [];
+            let upcomingTasks = [];
+
+            tasks.forEach(task => {
+                const days = getDaysUntilDeadline(task.deadline);
+                
+                // Пропускаем просроченные задачи (days < 0)
+                if (days < 0) {
+                    return;
+                }
+                
+                // Срочные: 5 или меньше дней
+                if (days <= 5 && days >= 0) {
+                    urgentTasks.push(task);
+                }
+                
+                // Текущая неделя
+                if (isInCurrentWeek(task.deadline)) {
+                    currentTasks.push(task);
+                }
+                
+                // Chill: 15 или больше дней
+                if (days >= 15) {
+                    upcomingTasks.push(task);
+                }
+            });
+
+            // Отображение срочных задач
+            urgentContainer.innerHTML = '';
+            if (urgentTasks.length === 0) {
+                urgentContainer.innerHTML = '<p class="empty-state">🎉 Срочных задач нет!</p>';
+            } else {
+                urgentTasks.forEach(task => {
+                    urgentContainer.appendChild(createTaskCard(task));
+                });
+            }
+            urgentBadge.textContent = urgentTasks.length;
+
+            // Отображение задач текущей недели
+            currentContainer.innerHTML = '';
+            if (currentTasks.length === 0) {
+                currentContainer.innerHTML = '<p class="empty-state">Текущих задач нет</p>';
+            } else {
+                currentTasks.forEach(task => {
+                    currentContainer.appendChild(createTaskCard(task));
+                });
+            }
+            currentBadge.textContent = currentTasks.length;
+
+            // Отображение будущих задач
+            upcomingContainer.innerHTML = '';
+            if (upcomingTasks.length === 0) {
+                upcomingContainer.innerHTML = '<p class="empty-state">Будущих задач нет</p>';
+            } else {
+                upcomingTasks.forEach(task => {
+                    upcomingContainer.appendChild(createTaskCard(task));
+                });
+            }
+            upcomingBadge.textContent = upcomingTasks.length;
+        }
+
+        // Инициализация
+        renderTasks();
+    </script>
+</body>
+</html>
